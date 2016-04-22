@@ -24,7 +24,6 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity {
 
     private ImageView mImageView;
-    private Button mLoadButton;
     private LruCache<String, Bitmap> mBitmapLruCache;
     private Set<SoftReference<Bitmap>> mReusableBitmaps = Collections.synchronizedSet(new HashSet<SoftReference<Bitmap>>());
 
@@ -49,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         };
 
         mImageView = (ImageView) findViewById(R.id.iv_image);
-        mLoadButton = (Button) findViewById(R.id.btn_load_image);
+        Button mLoadButton = (Button) findViewById(R.id.btn_load_image);
         mLoadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -105,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //查找
+    //查找是否可以复用
     private Bitmap findCandidate(BitmapFactory.Options options) {
         if (mReusableBitmaps != null && mReusableBitmaps.size() != 0) {
             synchronized (mReusableBitmaps) {
@@ -225,9 +224,9 @@ public class MainActivity extends AppCompatActivity {
         WeakReference<ImageTask> mImageTaskWeakReference;
 
         public AsyncDrawable(Resources resources, Bitmap bitmap, ImageTask imageTask) {
-            super(bitmap);
+            super(resources,bitmap);
 
-            mImageTaskWeakReference = new WeakReference<ImageTask>(imageTask);
+            mImageTaskWeakReference = new WeakReference<>(imageTask);
         }
 
         public ImageTask getImageTask() {
