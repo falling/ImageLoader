@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected void entryRemoved(boolean evicted, String key, Bitmap oldValue, Bitmap newValue) {
                 super.entryRemoved(evicted, key, oldValue, newValue);
-                mReusableBitmaps.add(new SoftReference<>(oldValue));
+                mReusableBitmaps.add(new SoftReference<>(oldValue));//添加到mReusableBitmaps中，方便复用内存
             }
         };
 
@@ -104,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    //查找
     private Bitmap findCandidate(BitmapFactory.Options options) {
         if (mReusableBitmaps != null && mReusableBitmaps.size() != 0) {
             synchronized (mReusableBitmaps) {
