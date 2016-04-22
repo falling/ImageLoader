@@ -95,21 +95,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //按照缩放，读取图片
-    private void decodeBitmapFromResource() {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeResource(getResources(), R.drawable.big, options);
-        options.inSampleSize = calculateInSampleSize(options, 200, 200);
-        options.inJustDecodeBounds = false;
-        new ImageTask(mImageView, options).execute(R.drawable.big);
-    }
 
     private void addInBitmapOptions(BitmapFactory.Options option) {
-        option.inMutable = true;
+        option.inMutable = true;//如果这图片可以复用
         Bitmap bitmap = findCandidate(option);
-        if (bitmap != null) {
-            option.inBitmap = bitmap;
+        if (bitmap != null) { //如果有可复用内存，
+            option.inBitmap = bitmap; //直接使用。
         }
     }
 
@@ -120,9 +111,8 @@ public class MainActivity extends AppCompatActivity {
                 while (iterator.hasNext()) {
                     Bitmap bitmap = iterator.next().get();
                     if (bitmap != null
-                            && bitmap.isMutable()
-                            && candateMeets(bitmap, options)) {
-
+                            && bitmap.isMutable()//可以复用
+                            && candateMeets(bitmap, options)){//内存满足可以复用
                         iterator.remove();
                         return bitmap;
                     } else {
@@ -134,13 +124,15 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
+    //判定是否可以复用。
     private boolean candateMeets(Bitmap bitmap, BitmapFactory.Options options) {
+        //安卓4.4及以上，只要满足内存足够则可以复用。
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             int width = options.outWidth / options.inSampleSize;
             int height = options.outHeight / options.inSampleSize;
             return width * height * getPixelSize(options.inPreferredConfig) <= bitmap.getByteCount();
         }
-
+        //否则，判断宽高是否可以相同。
         return options.outWidth == bitmap.getWidth() &&
                 options.outHeight == bitmap.getHeight() &&
                 options.inSampleSize == 1;
@@ -162,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //计算缩放比例
     private int calculateInSampleSize(BitmapFactory.Options options, int requestWidth, int requestHeight) {
         int originWidth = options.outWidth;
         int originHeight = options.outHeight;
@@ -209,21 +202,23 @@ public class MainActivity extends AppCompatActivity {
             mBitmapLruCache.put("resId:"+resId, bitmap);
 
             ImageView imageView = mImageViewWeakReference.get();
-            if (imageView != null && getImageTask(imageView) == this) {
-                mImageViewWeakReference.get().setImageBitmap(bitmap);
+            if (imageView != null && getImageTask(imageView) == this) {//如果view不为null，并且加载这view的Task是这个，则显示
+                imageView.setImageBitmap(bitmap);
             }
         }
     }
 
+    //获取图片加载任务
     private ImageTask getImageTask(ImageView imageView) {
         Drawable drawable = imageView.getDrawable();
         if (drawable instanceof AsyncDrawable) {
-            AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
-            return asyncDrawable.getImageTask();
+            //返回ImageTask
+            return ((AsyncDrawable) drawable).getImageTask();
         }
         return null;
     }
 
+    //存储加载图片AsyncTask的任务
     public class AsyncDrawable extends BitmapDrawable {
         WeakReference<ImageTask> mImageTaskWeakReference;
 
